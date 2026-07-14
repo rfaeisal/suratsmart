@@ -1,8 +1,7 @@
 #!/bin/sh
 PORT="${PORT:-80}"
 
-# Ganti port di Apache config saat startup
-sed -i "s/Listen 80/Listen ${PORT}/" /etc/apache2/ports.conf
-sed -i "s/<VirtualHost \*:80>/<VirtualHost *:${PORT}>/" /etc/apache2/sites-enabled/000-default.conf
+sed -i "s/listen 80;/listen ${PORT};/" /etc/nginx/sites-enabled/default
 
-exec apache2ctl -D FOREGROUND
+php-fpm -D
+nginx -g 'daemon off;'
