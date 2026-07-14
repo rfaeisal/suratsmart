@@ -1,0 +1,25 @@
+# Kredensial & config sensitif
+application/config/database.local.php
+
+# CI3 cache & sessions
+application/cache/*
+application/sessions/*
+application/logs/*
+
+# Jaga folder tetap ada di repo
+!application/cache/index.html
+!application/logs/index.html
+!application/sessions/.htaccess
+
+# Upload PDF
+uploads/
+
+# Composer dependencies (di-install saat build)
+vendor/
+
+# OS & editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp

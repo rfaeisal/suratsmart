@@ -1,0 +1,11 @@
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+
+// Salin file ini ke approvalsmart.php dan isi nilainya.
+// JANGAN commit approvalsmart.php ke git.
+
+$config['approvalsmart_base_url']     = 'https://api.approvalsmart.example.com';
+$config['approvalsmart_hmac_key_id']  = 'your-hmac-key-id';
+$config['approvalsmart_hmac_secret']  = 'your-hmac-secret';
+$config['approvalsmart_legacy_token'] = 'your-legacy-api-token';
+$config['approvalsmart_timeout']      = 30;
