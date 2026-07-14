@@ -120,6 +120,38 @@ $status_map = [
     </div>
     <?php endif; ?>
 
+    <?php if (in_array($item->status, ['menunggu_approval', 'ditolak', 'kedaluwarsa'])): ?>
+    <div class="card border-0 shadow-sm mb-3 border-secondary border-opacity-25">
+      <div class="card-header bg-white fw-semibold">
+        <i class="bi bi-arrow-clockwise me-1 text-secondary"></i>Kirim Ulang ke ApprovalSmart
+      </div>
+      <div class="card-body">
+        <?php if (!$item->file_pdf): ?>
+          <div class="alert alert-warning py-2 small mb-0">Generate PDF terlebih dahulu.</div>
+        <?php else: ?>
+        <div class="alert alert-secondary py-2 small mb-3">
+          <i class="bi bi-info-circle me-1"></i>Akan membuat <strong>approval_id baru</strong> dan menggantikan pengiriman sebelumnya. Status saat ini: <strong><?= $label ?></strong>.
+        </div>
+        <?php $pdf_url = $pdf_public_url ?? NULL; ?>
+        <?= form_open("surat/kirim/{$item->id}") ?>
+          <?php if (!$pdf_url): ?>
+          <div class="alert alert-warning py-2 small mb-3">
+            <i class="bi bi-exclamation-triangle me-1"></i>Public Base URL belum diisi di <a href="<?= site_url('settings') ?>" class="alert-link">Settings</a>. PDF tidak akan disertakan.
+          </div>
+          <?php endif; ?>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold mb-1">Berlaku (jam)</label>
+            <input type="number" name="expires_in_hours" class="form-control form-control-sm" value="48" min="1" max="720">
+          </div>
+          <button type="submit" class="btn btn-secondary btn-sm w-100 fw-semibold" onclick="return confirm('Kirim ulang surat ini ke ApprovalSmart? Approval sebelumnya akan digantikan.')">
+            <i class="bi bi-arrow-clockwise me-1"></i>Kirim Ulang
+          </button>
+        <?= form_close() ?>
+        <?php endif; ?>
+      </div>
+    </div>
+    <?php endif; ?>
+
     <?php if ($item->approval_id || $item->decided_at): ?>
     <div class="card border-0 shadow-sm">
       <div class="card-header bg-white fw-semibold">Info Approval</div>

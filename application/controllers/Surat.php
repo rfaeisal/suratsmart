@@ -146,7 +146,8 @@ class Surat extends Auth_Controller {
         $item = $this->Surat_model->get_by_id($id);
         if (!$item) show_404();
 
-        if (!in_array($item->status, ['draft', 'gagal_kirim'])) {
+        $kirimable = ['draft', 'gagal_kirim', 'menunggu_approval', 'ditolak', 'kedaluwarsa'];
+        if (!in_array($item->status, $kirimable)) {
             $this->session->set_flashdata('error', 'Status surat saat ini tidak bisa dikirim: ' . $item->status);
             redirect('surat/detail/' . $id);
         }
