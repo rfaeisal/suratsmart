@@ -181,6 +181,7 @@ class Resep extends Auth_Controller {
 
         $expires     = max(1, min(720, (int)$this->input->post('expires_in_hours') ?: 48));
         $approval_id = $this->_generate_uuid();
+        $source_ref  = 'resep-' . $approval_id;
 
         $this->load->model('Settings_model');
         $public_base = rtrim($this->Settings_model->get('public_base_url'), '/');
@@ -194,7 +195,7 @@ class Resep extends Auth_Controller {
 
         $payload = [
             'approval_id'      => $approval_id,
-            'source_ref'       => $item->source_ref,
+            'source_ref'       => $source_ref,
             'request_type'     => 'resep',
             'title'            => $item->nomor_resep . ' — Resep ' . $item->nama_pasien,
             'approver_user_id' => $dokter->approvalsmart_user_id,
@@ -213,7 +214,7 @@ class Resep extends Auth_Controller {
         $result = $this->approvalbridge->send($payload);
 
         $this->Approval_log_model->log_outbound(
-            'resep', $item->source_ref, $approval_id,
+            'resep', $source_ref, $approval_id,
             $result['endpoint'], $payload, $result
         );
 
@@ -221,6 +222,7 @@ class Resep extends Auth_Controller {
             $this->Resep_model->update($id, [
                 'status'           => 'menunggu_approval',
                 'approval_id'      => $approval_id,
+                'source_ref'       => $source_ref,
                 'approver_user_id' => $dokter->approvalsmart_user_id,
                 'expires_in_hours' => $expires,
             ]);

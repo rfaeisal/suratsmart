@@ -164,6 +164,7 @@ class Surat extends Auth_Controller {
 
         $expires     = max(1, min(720, (int)$this->input->post('expires_in_hours') ?: 48));
         $approval_id = $this->_generate_uuid();
+        $source_ref  = 'surat-' . $approval_id;
 
         // Bangun public URL PDF dari setting public_base_url
         $this->load->model('Settings_model');
@@ -178,7 +179,7 @@ class Surat extends Auth_Controller {
 
         $payload = [
             'approval_id'      => $approval_id,
-            'source_ref'       => $item->source_ref,
+            'source_ref'       => $source_ref,
             'request_type'     => 'surat',
             'title'            => $item->nomor_surat . ' — ' . $item->jenis_surat,
             'approver_user_id' => $dokter->approvalsmart_user_id,
@@ -198,7 +199,7 @@ class Surat extends Auth_Controller {
 
         // Log — jangan simpan HMAC secret (tidak ada di payload, hanya di header yang tidak kita log)
         $this->Approval_log_model->log_outbound(
-            'surat', $item->source_ref, $approval_id,
+            'surat', $source_ref, $approval_id,
             $result['endpoint'], $payload, $result
         );
 
@@ -206,6 +207,7 @@ class Surat extends Auth_Controller {
             $this->Surat_model->update($id, [
                 'status'           => 'menunggu_approval',
                 'approval_id'      => $approval_id,
+                'source_ref'       => $source_ref,
                 'approver_user_id' => $dokter->approvalsmart_user_id,
                 'expires_in_hours' => $expires,
             ]);
