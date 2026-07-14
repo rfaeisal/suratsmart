@@ -5,10 +5,14 @@ RUN apt-get update && apt-get install -y \
     libzip-dev libgmp-dev unzip git \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) gd mysqli pdo pdo_mysql zip gmp \
-    && a2enmod rewrite \
-    && a2dismod mpm_event mpm_worker 2>/dev/null || true \
-    && a2enmod mpm_prefork \
     && rm -rf /var/lib/apt/lists/*
+
+# Pastikan hanya satu MPM yang aktif
+RUN rm -f /etc/apache2/mods-enabled/mpm_event.conf \
+          /etc/apache2/mods-enabled/mpm_event.load \
+          /etc/apache2/mods-enabled/mpm_worker.conf \
+          /etc/apache2/mods-enabled/mpm_worker.load \
+    && a2enmod mpm_prefork rewrite
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
@@ -21,17 +25,18 @@ RUN mkdir -p uploads/pdf/surat uploads/pdf/resep uploads/pdf/tmp \
     application/sessions application/logs application/cache \
     && chmod -R 777 uploads application/sessions application/logs application/cache
 
-RUN echo '<VirtualHost *:${PORT}>\n\
+# Apache VirtualHost standar (port diganti saat startup via entrypoint)
+RUN echo '<VirtualHost *:80>\n\
     DocumentRoot /var/www/html\n\
     <Directory /var/www/html>\n\
         Options -Indexes +FollowSymLinks\n\
         AllowOverride All\n\
         Require all granted\n\
     </Directory>\n\
-    ErrorLog ${APACHE_LOG_DIR}/error.log\n\
-    CustomLog ${APACHE_LOG_DIR}/access.log combined\n\
 </VirtualHost>' > /etc/apache2/sites-available/000-default.conf
 
-RUN echo 'Listen ${PORT}' > /etc/apache2/ports.conf
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
-CMD ["sh", "-c", "apache2ctl -D FOREGROUND"]
+EXPOSE 80
+CMD ["/usr/local/bin/docker-entrypoint.sh"]
