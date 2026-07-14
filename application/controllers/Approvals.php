@@ -24,10 +24,7 @@ class Approvals extends MY_Controller {
     {
         $raw_body = file_get_contents('php://input');
 
-        log_message('error', '[AS-callback] MASUK source_ref=' . $source_ref . ' method=' . $_SERVER['REQUEST_METHOD']);
-
         if ($_SERVER['REQUEST_METHOD'] !== 'PATCH') {
-            log_message('error', '[AS-callback] DITOLAK: method bukan PATCH');
             $this->_json(['status' => 'error', 'message' => 'Method not allowed'], 405);
             return;
         }
@@ -35,9 +32,7 @@ class Approvals extends MY_Controller {
         // 1. Verifikasi Bearer token
         $auth_header  = $this->input->get_request_header('Authorization', FALSE);
         $legacy_token = $this->approvalbridge->get_legacy_token();
-        log_message('error', '[AS-callback] auth_header=' . substr((string)$auth_header, 0, 20) . '... token_set=' . (!empty($legacy_token) ? 'yes' : 'NO'));
         if (empty($legacy_token) || $auth_header !== 'Bearer ' . $legacy_token) {
-            log_message('error', '[AS-callback] DITOLAK: auth gagal. header=' . $auth_header . ' expected=Bearer ' . substr((string)$legacy_token, 0, 8) . '...');
             $this->_json(['status' => 'error', 'message' => 'Unauthorized'], 401);
             return;
         }
@@ -45,10 +40,8 @@ class Approvals extends MY_Controller {
         // 2. Parse body
         $body   = json_decode($raw_body, TRUE);
         $status = isset($body['status']) ? trim($body['status']) : '';
-        log_message('error', '[AS-callback] body=' . $raw_body);
 
         if (!in_array($status, ['approved', 'rejected', 'expired'])) {
-            log_message('error', '[AS-callback] DITOLAK: status tidak valid: ' . $status);
             $this->_json(['status' => 'error', 'message' => 'Invalid or missing status'], 400);
             return;
         }
@@ -58,7 +51,6 @@ class Approvals extends MY_Controller {
 
         // 4. Dokumen tidak ditemukan → 200 supaya ApprovalSmart tidak retry
         if (!$doc) {
-            log_message('error', '[AS-callback] TIDAK DITEMUKAN: source_ref=' . $source_ref);
             $this->_json(['status' => 'ok', 'message' => 'source_ref not found, ignored'], 200);
             return;
         }
